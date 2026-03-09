@@ -126,7 +126,7 @@ export default function Page() {
         </div>
 
         <div className="flex gap-2">
-            <ButtonGuardWrapper requiredRoles={["ADMINISTRATOR", "USERS_CANDOWNLOADROLES"]}>
+            <ButtonGuardWrapper requiredRoles={["ADMINISTRATOR", "USERS_CANDOWNLOADROLES", "ROLES_CANDOWNLOADEXCEL"]}>
                 <button
                     onClick={handleDownloadExcel}
                     className="rounded-md bg-green-600 px-5 py-2 text-sm font-semibold text-white hover:bg-green-700 transition-colors shadow-sm whitespace-nowrap"
@@ -134,7 +134,7 @@ export default function Page() {
                     Download Excel
                 </button>
             </ButtonGuardWrapper>
-            <ButtonGuardWrapper requiredRoles={["ADMINISTRATOR", "USERS_CANPRINTROLES"]}>
+            <ButtonGuardWrapper requiredRoles={["ADMINISTRATOR", "USERS_CANPRINTROLES", "ROLES_CANDOWNLOADPDF"]}>
                 <DownloadRolesPdf roles={filteredRoles} searchQuery={searchQuery} />
             </ButtonGuardWrapper>
         </div>

@@ -3,6 +3,10 @@
 import { query, pool } from "@/lib/db";
 import { Client } from "pg";
 
+const dbHost = process.env.DB_HOST;
+const isSupabasePooler = !!dbHost && dbHost.includes('.pooler.supabase.com');
+const resolvedPort = Number(process.env.DB_PORT || (isSupabasePooler ? 6543 : 5432));
+
 export async function checkDbConnection() {
   try {
     const start = Date.now();
@@ -19,7 +23,7 @@ export async function checkDbConnection() {
         host: process.env.DB_HOST || "via-url",
         db: process.env.DB_NAME || "default",
         user: process.env.DB_USER || "unknown",
-        port: process.env.DB_PORT || "5432",
+        port: String(resolvedPort),
         ssl: process.env.DB_HOST && process.env.DB_HOST.includes('localhost') ? "off" : "on",
         hasPassword: !!process.env.DB_PASSWORD,
         hasUrl: !!process.env.DATABASE_URL,
@@ -31,15 +35,16 @@ export async function checkDbConnection() {
     // If pool fails, try a direct client connection to diagnose
     try {
         const client = new Client({
-            host: process.env.DB_HOST,
-            port: Number(process.env.DB_PORT || 5432),
+          host: dbHost,
+          port: resolvedPort,
             user: process.env.DB_USER,
             password: process.env.DB_PASSWORD,
             database: process.env.DB_NAME,
-            ssl: process.env.DB_HOST && process.env.DB_HOST.includes('localhost') ? false : {
+          ssl: dbHost && dbHost.includes('localhost') ? false : {
                 rejectUnauthorized: false, 
             },
-            connectionTimeoutMillis: 5000,
+          connectionTimeoutMillis: 10000,
+          keepAlive: true,
         });
         await client.connect();
         const result = await client.query("SELECT current_database(), current_user, version(), inet_server_addr()");

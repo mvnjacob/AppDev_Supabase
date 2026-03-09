@@ -28,8 +28,8 @@ BETTER_AUTH_URL=http://localhost:3000
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 #---vercel-----
-#BETTER_AUTH_URL=https://basicnextapp.vercel.app
-#NEXT_PUBLIC_APP=https://basicnextapp.vercel.app
+#BETTER_AUTH_URL=https://appdevsupabase.vercel.app/
+#NEXT_PUBLIC_APP=https://appdevsupabase.vercel.app/
 
 # Session
 SESSION_TIMEOUT_VALUE=2 hours

@@ -2,18 +2,24 @@ import { Pool, PoolClient, QueryResultRow, QueryResult } from 'pg';
 
 const globalForPool = global as unknown as { pool: Pool };
 
+const dbHost = process.env.DB_HOST;
+const isLocalhost = !!dbHost && dbHost.includes('localhost');
+const isSupabasePooler = !!dbHost && dbHost.includes('.pooler.supabase.com');
+const resolvedPort = Number(process.env.DB_PORT || (isSupabasePooler ? 6543 : 5432));
+
 const connectionConfig = {
-  host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT || 5432),
+  host: dbHost,
+  port: resolvedPort,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  ssl: process.env.DB_HOST && process.env.DB_HOST.includes('localhost') ? false : {
+  ssl: isLocalhost ? false : {
     rejectUnauthorized: false, 
   },
   max: 20,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  connectionTimeoutMillis: 10000,
+  keepAlive: true,
 };
 
 // Fallback to connection string if individual vars are missing but DATABASE_URL is present
@@ -24,11 +30,11 @@ const finalConfig = (process.env.DB_HOST)
       ssl: { rejectUnauthorized: false } 
     };
 
-if (!process.env.DB_HOST && !process.env.DATABASE_URL) {
+if (!dbHost && !process.env.DATABASE_URL) {
   console.error("❌ Database configuration missing. Please set DB_HOST/DB_USER/etc. or DATABASE_URL in .env.local");
 } else {
-  if (process.env.DB_HOST) {
-    console.log(`ℹ️ Database Config: Host=${process.env.DB_HOST}, User=${process.env.DB_USER}, DB=${process.env.DB_NAME}`);
+  if (dbHost) {
+    console.log(`ℹ️ Database Config: Host=${dbHost}, User=${process.env.DB_USER}, DB=${process.env.DB_NAME}, Port=${resolvedPort}`);
   } else {
     console.log("ℹ️ Database Config: Using DATABASE_URL");
   }
@@ -46,7 +52,7 @@ pool.on('error', (err) => {
 // Verify connection on startup
 (async () => {
   try {
-    if (!process.env.DB_HOST && !process.env.DATABASE_URL) {
+    if (!dbHost && !process.env.DATABASE_URL) {
       console.warn("⚠️ Skipping DB connection verification because configuration is missing");
       return;
     }
